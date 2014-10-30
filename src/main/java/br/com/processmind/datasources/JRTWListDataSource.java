@@ -12,7 +12,7 @@ public class JRTWListDataSource implements JRDataSource{
 	private int listSize;
 	
 	public JRTWListDataSource(TWList twList) {
-		this.listSize = twList.getArraySize();
+		//this.listSize = twList.getArraySize();
 		this.twList = twList;
 		this.nextPosition = 0;		
 	}

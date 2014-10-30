@@ -2,66 +2,93 @@ package br.com.processmind.datasources;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+
 import java.util.Date;
+
 import net.sf.jasperreports.engine.JRField;
+
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.runners.MockitoJUnitRunner;
+
 import teamworks.TWList;
 import teamworks.TWObject;
-import teamworks.TWObjectFactory;
 
+/**
+ * 
+ * @author Hromenique Cezniowscki Leite Batista
+ *
+ */
+
+@RunWith(MockitoJUnitRunner.class)
 public class JRTWListDataSourceTest {
 	@Mock
-	JRField jrFieldNome;
+	private JRField jrFieldNome;
 	@Mock
-	JRField jrFieldIdade;
+	private JRField jrFieldIdade;
 	@Mock
-	JRField jrFieldSalario;
+	private JRField jrFieldSalario;
 	@Mock
-	JRField jrFieldNascimento;	
+	private JRField jrFieldNascimento;	
 	@Mock
-	JRField jrFieldInvalido;
-
+	private JRField jrFieldInvalido;
+	@Mock
+	private TWList twList;
+	@Mock
+	private TWObject twObj1;
+	@Mock
+	private TWObject twObj2;
+	
+	private JRTWListDataSource dataSource;
+	
 	@Before
 	public void init(){
 		MockitoAnnotations.initMocks(this);
-	}
-	
+		dataSource = new JRTWListDataSource(twList);
+	}	
+
 	@Test
 	public void testNext_ComVazio() throws Exception {
-		TWList twList = criarTWListVazio();
-		JRTWListDataSource dataSource = criarDataSource(twList);		
-		
+		when(twList.getArraySize()).thenReturn(0);		
+			
 		assertEquals(false, dataSource.next());
+		
+		verify(twList, Mockito.atLeast(1)).getArraySize();
 	}
 	
 	@Test
 	public void testNext_ComUmaPosicao() throws Exception {
-		TWList twList = criarTWListComUmaPosicao();
-		JRTWListDataSource dataSource = criarDataSource(twList);		
+		when(twList.getArraySize()).thenReturn(1);			
 		
 		assertEquals(false, dataSource.next());
+		
+		verify(twList, Mockito.atLeast(1)).getArraySize();
 	}
 	
 	@Test
-	public void testNext_Com3Posicoes() throws Exception {
-		TWList twList = criarTWListCom3Posicoes();
-		JRTWListDataSource dataSource = criarDataSource(twList);		
+	public void testNext_Com2Posicoes() throws Exception {
+		when(twList.getArraySize()).thenReturn(2);	
 		
-		assertEquals(true, dataSource.next());
-		assertEquals(true, dataSource.next());
+		assertEquals(true, dataSource.next());		
 		assertEquals(false, dataSource.next());
+		
+		verify(twList, Mockito.atLeast(1)).getArraySize();
 	}
 	
 	@SuppressWarnings("deprecation")
 	@Test
-	public void testGetFieldValue_Valido() throws Exception {
-		TWList twList = criarTWListComUmaPosicao();
-		JRTWListDataSource dataSource = criarDataSource(twList);		
+	public void testGetFieldValue_Existente() throws Exception {
+		when(twList.getArrayData(0)).thenReturn(twObj1);
+		
+		when(twObj1.getPropertyValue("nome")).thenReturn("Fulano");
+		when(twObj1.getPropertyValue("idade")).thenReturn(24);
+		when(twObj1.getPropertyValue("salario")).thenReturn(1200.0);
+		when(twObj1.getPropertyValue("nascimento")).thenReturn(new Date(2000, 10, 10));
 		
 		when(jrFieldNome.getName()).thenReturn("nome");
 		when(jrFieldIdade.getName()).thenReturn("idade");
@@ -73,11 +100,6 @@ public class JRTWListDataSourceTest {
 		Object fieldValueSalario = dataSource.getFieldValue(jrFieldSalario);
 		Object fieldValueNascimento = dataSource.getFieldValue(jrFieldNascimento);
 		
-		verify(jrFieldNome, Mockito.times(1)).getName();
-		verify(jrFieldIdade, Mockito.times(1)).getName();
-		verify(jrFieldSalario, Mockito.times(1)).getName();
-		verify(jrFieldNascimento, Mockito.times(1)).getName();		
-		
 		assertThat(fieldValueNome, Matchers.instanceOf(String.class));
 		assertThat(fieldValueIdade, Matchers.instanceOf(Integer.class));
 		assertThat(fieldValueSalario, Matchers.instanceOf(Double.class));
@@ -87,73 +109,27 @@ public class JRTWListDataSourceTest {
 		assertEquals(fieldValueNome, 24);
 		assertEquals(fieldValueNome, 1200.0);
 		assertEquals(fieldValueNome, new Date(2000, 10, 10));
+		
+		verify(twList, Mockito.times(1)).getArrayData(0);
+		
+		verify(jrFieldNome, Mockito.times(1)).getName();
+		verify(jrFieldIdade, Mockito.times(1)).getName();
+		verify(jrFieldSalario, Mockito.times(1)).getName();
+		verify(jrFieldNascimento, Mockito.times(1)).getName();	
+		
+		verify(twObj1, Mockito.times(1)).getPropertyValue("nome");
+		verify(twObj1, Mockito.times(1)).getPropertyValue("idade");
+		verify(twObj1, Mockito.times(1)).getPropertyValue("salario");
+		verify(twObj1, Mockito.times(1)).getPropertyValue("nascimento");		
 	}
 	
 	@Test
-	public void testGetFieldValue_Invalido() throws Exception{
-		TWList twList = criarTWListComUmaPosicao();
-		JRTWListDataSource dataSource = criarDataSource(twList);
+	public void testGetFieldValue_NaoExistente() throws Exception{		
+		when(jrFieldInvalido.getName()).thenReturn("campoDeNomeInvalido");		
 		
-		when(jrFieldInvalido.getName()).thenReturn("campoDeNomeInvalido");
-		
-		Object object = dataSource.getFieldValue(jrFieldInvalido);
+		assertNull(dataSource.getFieldValue(jrFieldInvalido));
 		
 		verify(jrFieldInvalido, Mockito.times(1)).getName();
-		
-		assertNull(object);
 	}
-	
 
-	@SuppressWarnings("deprecation")
-	private TWList criarTWListCom3Posicoes() throws Exception{
-		TWList twList = TWObjectFactory.createList();	
-		
-		TWObject object1 = TWObjectFactory.createObject();
-		TWObject object2 = TWObjectFactory.createObject();
-		TWObject object3 = TWObjectFactory.createObject();
-		
-		object1.setPropertyValue("nome", "Fulano");
-		object1.setPropertyValue("idade", 24);
-		object1.setPropertyValue("salario", 1200.0);
-		object1.setPropertyValue("nascimento", new Date(2000, 10, 10));
-		
-		object2.setPropertyValue("nome", "Deltrano");
-		object2.setPropertyValue("idade", 30);
-		object2.setPropertyValue("salario", 500.0);
-		object2.setPropertyValue("nascimento", new Date(1994, 10, 7));
-		
-		object3.setPropertyValue("nome", "Siclano");
-		object3.setPropertyValue("idade", 31);
-		object3.setPropertyValue("salario", 5100.0);
-		object3.setPropertyValue("nascimento", new Date(1983, 7, 10));
-		
-		twList.addArrayData(object1);
-		twList.addArrayData(object2);
-		twList.addArrayData(object3);	
-		
-		return twList;
-	}
-	
-	@SuppressWarnings("deprecation")
-	private TWList criarTWListComUmaPosicao() throws Exception{
-		TWList twList = TWObjectFactory.createList();		
-		TWObject object = TWObjectFactory.createObject();		
-		
-		object.setPropertyValue("nome", "Fulano");
-		object.setPropertyValue("idade", 24);
-		object.setPropertyValue("salario", 1200.0);
-		object.setPropertyValue("nascimento", new Date(2000, 10, 10));
-		
-		return twList;
-	}
-	
-	private TWList criarTWListVazio() throws Exception{
-		TWList twList = TWObjectFactory.createList();	
-		return twList;
-	}
-	
-	private JRTWListDataSource criarDataSource(TWList twList) {
-		JRTWListDataSource dataSource = new JRTWListDataSource(twList);
-		return dataSource;
-	}
 }
