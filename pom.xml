@@ -6,6 +6,8 @@
   <name>Integração IBM BPM com Jasper Reports</name>
   
  <dependencies>
+ 	
+ 
 	<dependency>
 		<groupId>net.sf.jasperreports</groupId>
 		<artifactId>jasperreports</artifactId>
