@@ -32,8 +32,8 @@
 			<attribute name="owner.project.facets" value="java"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/jars-dependencias/jasperreports/jasperreports-functions-5.6.1.jar"/>
-	<classpathentry kind="lib" path="C:/jars-dependencias/psclnt.jar"/>
-	<classpathentry kind="lib" path="C:/jars-dependencias/svrcoreclnt.jar"/>
+	<classpathentry kind="lib" path="src/main/resources/jasperreports-functions-5.6.1.jar"/>
+	<classpathentry kind="lib" path="src/main/resources/psclnt.jar"/>
+	<classpathentry kind="lib" path="src/main/resources/svrcoreclnt.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
